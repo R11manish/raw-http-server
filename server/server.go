@@ -11,7 +11,7 @@ type HttpServer struct {
 	fd   int
 }
 
-func NewHttpServer(host string, port int, fd int) *HttpServer {
+func NewHttpServer(host string, port int) *HttpServer {
 	return &HttpServer{
 		host: host,
 		port: port,
@@ -104,8 +104,17 @@ func (s *HttpServer) Start() error {
 
 	fmt.Printf("server started listening")
 
-	// write a loop
-	// main server loop
+	// loop for processing request
+
+	for {
+		clientFd, clientAddr, err := s.acceptConnection()
+		if err != nil {
+			fmt.Printf("Error accepting connection: %v\n", err)
+			continue
+		}
+
+		go s.handleConnection(clientFd, clientAddr)
+	}
 
 }
 
@@ -115,4 +124,3 @@ func (s *HttpServer) Cleanup() {
 		fmt.Println("server socket closed")
 	}
 }
-

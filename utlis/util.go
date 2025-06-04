@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"r11manish.com/model"
 )
 
 func ParseIPV4(ipStr string) ([4]byte, error) {
@@ -34,4 +36,55 @@ func ParseIPV4(ipStr string) ([4]byte, error) {
 	}
 
 	return ip, nil
+}
+
+func ParsedHttpRequest(data []byte) (*model.HTTPRequest, error) {
+	dataStr := string(data)
+
+	lines := strings.Split(dataStr, "\r\n")
+	if len(lines) < 1 {
+		return nil, fmt.Errorf("invalid Http Request")
+	}
+
+	requestLine := strings.Split(lines[0], " ")
+	if len(requestLine) != 3 {
+		return nil, fmt.Errorf("invalid request line")
+	}
+
+	req := &model.HTTPRequest{
+		Method:  requestLine[0],
+		Path:    requestLine[1],
+		Version: requestLine[2],
+		Headers: make(map[string]string),
+	}
+
+	bodyStart := 1
+
+	for i := 1; i < len(lines); i++ {
+		line := lines[i]
+		if line == "" {
+			bodyStart = i + 1
+			break
+		}
+
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) == 2 {
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+			req.Headers[strings.ToLower(key)] = value
+		}
+	}
+
+	if bodyStart < len(lines) {
+		req.Body = strings.Join(lines[bodyStart:], "\r\n")
+	}
+	return req, nil
+}
+
+func FormatHeaders(headers map[string]string) string {
+	var parts []string
+	for key, value := range headers {
+		parts = append(parts, fmt.Sprintf(`    "%s": "%s"`, key, value))
+	}
+	return "{\n" + strings.Join(parts, ",\n") + "\n  }"
 }
