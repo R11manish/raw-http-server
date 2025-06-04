@@ -67,10 +67,4 @@ The project is structured into several key components:
 - `response.go`: Handles HTTP response generation and formatting
 - `connection.go`: Manages client connections and request processing
 
-## License
 
-[Add your license here]
-
-## Contributing
-
-[Add contribution guidelines here]
